@@ -7,8 +7,12 @@ import (
 )
 
 var (
-	mReport     = make(map[string]string)
-	plainOutput = false
+	mReport                  = make(map[string]string)
+	plainOutput              = false
+	lustreInstalled          = false
+	iInstalledLustrePackages = 0
+	iLoadedLustreModules     = 0
+	bLnetLoaded              = false
 )
 
 func init() {
@@ -22,8 +26,15 @@ func main() {
 	checkUser()
 
 	fmt.Println(formatBoldWhite("Starting System Scan. Please wait..."))
-	strLshwOutput, _ := runCommand(strings.Fields("lshw -c system -quiet"))
-	parseLshw(strLshwOutput)
+
+	if checkExecutableExists("lshw") {
+		strLshwOutput, _ := runCommand(strings.Fields("lshw -c system -quiet"))
+		parseLshw(strLshwOutput)
+	} else {
+		sHostname, _ := runCommand(strings.Fields("hostname"))
+		sHostname = strings.TrimRight(sHostname, "\n\r")
+		fmt.Println(formatBoldWhite("Server/Hostname:"), sHostname)
+	}
 
 	if rootUser() {
 		strDmiDecodeOutput, _ := runCommand(strings.Fields("dmidecode --no-sysfs -t baseboard -q"))
@@ -51,6 +62,22 @@ func main() {
 	parseLsCpu(strLsCpuOutput)
 
 	checkSystemTuning()
+
+	parseLustrePackages()
+
+	if lustreInstalled {
+		println(formatBoldWhite("\nLoaded Lustre kernel modules:"))
+		parseLoadedLustreKernelModules()
+		parseLustreKernelModuleConfig()
+		if rootUser() {
+			fmt.Println(formatBoldWhite("\nLustre LNET Information:"))
+			if bLnetLoaded {
+				parseLnetInfo()
+			} else {
+				fmt.Println("\tThe Lustre LNET kernel module is not loaded, cannot get LNET details.")
+			}
+		}
+	}
 
 	if checkExecutableExists("ofed_info") {
 		ofedVersion, _ := runCommand(strings.Fields("ofed_info -n"))
