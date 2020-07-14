@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	mReport                  	= make(map[string]string)
-	bPlainOutput             	= false
-	bLustreInstalled         	= false
-	iInstalledLustrePackages 	= 0
-	iLoadedLustreModules     	= 0
-	bLnetLoaded              	= false
-	bParseMellanoxLspciOutput	= false
-	bLustreLoaded				= false
+	mReport                   = make(map[string]string)
+	bPlainOutput              = false
+	bLustreInstalled          = false
+	iInstalledLustrePackages  = 0
+	iLoadedLustreModules      = 0
+	bLnetLoaded               = false
+	bParseMellanoxLspciOutput = false
+	bLustreLoaded             = false
 )
 
 func init() {
@@ -73,11 +73,16 @@ func main() {
 		fmt.Println(formatBoldWhite("\nFirewall:"), "No firewall found.")
 	}
 
+	fmt.Println(formatBoldWhite("\nInstalled Lustre packages:"))
 	parseLustrePackages()
 
 	if bLustreInstalled {
+		fmt.Println(formatBoldWhite("\nLoaded Lustre Kernel modules:"))
 		parseLoadedLustreKernelModules()
+
+		fmt.Println(formatBoldWhite("\nLustre Kernel module configuration (\"/etc/modprobe.d/lustre.conf\"):"))
 		parseLustreKernelModuleConfig()
+
 		fmt.Println(formatBoldWhite("\nLustre Filesystem OST and MST Information:"))
 		if bLustreLoaded {
 			parseLfsDf()
@@ -101,11 +106,11 @@ func main() {
 		fmt.Println(formatBoldWhite("\nMellanox OFED:"), "No OFED found.")
 	}
 
-	if checkExecutableExists("ibv_devinfo"){
+	if checkExecutableExists("ibv_devinfo") {
 		parseIBDEVInfo()
 	} else {
 		bParseMellanoxLspciOutput = true
-		fmt.Println("\nCannot find \"ibdevinfo\" in $PATH. Will parse \"lspci -vvv\" output for Mellanox HCA information instead.")
+		fmt.Println("\nCannot find \"ibv_devinfo\" in $PATH. Will parse \"lspci -vvv\" output for Mellanox HCA information instead. Is OFED installed?")
 	}
 
 	strLspciOutput, _ := runCommand(strings.Fields("lspci -vvv"))
@@ -119,9 +124,9 @@ func main() {
 			fmt.Println("\t", line)
 		}
 	} else {
-			bParseMellanoxLspciOutput = true
-			fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available.")
-		}
+		bParseMellanoxLspciOutput = true
+		fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available. Is OFED installed?")
+	}
 
 	fmt.Println(formatBoldWhite("\nIP Network Interface Information:"))
 
@@ -149,14 +154,14 @@ func main() {
 	for _, line := range slcMountOutput {
 		fmt.Println("\t", line)
 	}
-/*
-	fmt.Println(formatBoldWhite("\nSummary:"))
-	if len(mReport) < 1 {
-		fmt.Println("\t No troubles found.")
-	} else {
-		for k, v := range mReport {
-			fmt.Println("\t", k, ":", v)
+	/*
+		fmt.Println(formatBoldWhite("\nSummary:"))
+		if len(mReport) < 1 {
+			fmt.Println("\t No troubles found.")
+		} else {
+			for k, v := range mReport {
+				fmt.Println("\t", k, ":", v)
+			}
 		}
-	}
-*/
+	*/
 }

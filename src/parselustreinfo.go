@@ -12,7 +12,6 @@ func parseLustrePackages() {
 	if checkExecutableExists("rpm") {
 		sRPMOutput, _ := runCommand(strings.Fields("rpm -qa"))
 		slcRPMOutput := strings.Split(sRPMOutput, "\n")
-		fmt.Println(formatBoldWhite("\nInstalled Lustre packages:"))
 		for _, line := range slcRPMOutput {
 			if strings.Contains(line, "lustre") {
 				fmt.Println("\t", line)
@@ -30,7 +29,6 @@ func parseLustrePackages() {
 	} else if checkExecutableExists("apt") {
 		sDPKGOutput, _ := runCommand(strings.Fields("apt list --installed"))
 		slcDPKGOutput := strings.Split(sDPKGOutput, "\n")
-		fmt.Println(formatBoldWhite("\nInstalled Lustre packages:"))
 		for _, line := range slcDPKGOutput {
 			if strings.Contains(line, "lustre") {
 				fmt.Println("\t", line)
@@ -52,7 +50,6 @@ func parseLoadedLustreKernelModules() {
 		file, _ := os.Open("/proc/modules")
 		fScanner := bufio.NewScanner(file)
 		fScanner.Split(bufio.ScanLines)
-		fmt.Println(formatBoldWhite("\nLoaded Lustre Kernel modules:"))
 		for fScanner.Scan() {
 			sModule := strings.Split(fScanner.Text(), " ")[0]
 			sModinfoOutput, _ := runCommand(strings.Fields("modinfo " + sModule))
