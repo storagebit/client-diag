@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 )
 
 func checkExecutableExists(c string) bool {
@@ -33,11 +34,14 @@ func runCommand(commandParts []string) (string, string) {
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	err := cmd.Run()
-	if err != nil {
-		fmt.Println(formatYellow(err.Error()))
-	}
 	outStr := string(stdout.Bytes())
 	errStr := string(stderr.Bytes())
+	if err != nil {
+		fmt.Println(formatYellow("\t" + cmd.String() + " " + err.Error()))
+		for _, line := range strings.Split(errStr, "\n"){
+			fmt.Println("\t" + line)
+		}
+	}
 	return outStr, errStr
 }
 

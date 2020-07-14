@@ -59,6 +59,9 @@ func parseLoadedLustreKernelModules() {
 			if strings.Contains(sModule, "lnet") {
 				bLnetLoaded = true
 			}
+			if strings.Contains(sModule, "lustre") {
+				bLustreLoaded = true
+			}
 			slcModinfoOutput := strings.Split(sModinfoOutput, "\n")
 
 			if strings.Contains(slcModinfoOutput[3], "Lustre") {
@@ -83,6 +86,22 @@ func parseLnetInfo() {
 		slcLnetOutput := strings.Split(sLnetOutput, "\n")
 
 		for _, line := range slcLnetOutput {
+			fmt.Println("\t", line)
+		}
+	}
+	return
+}
+
+func parseLfsDf() {
+	if checkExecutableExists("lfs") {
+		sLfsDfOutput, _ := runCommand(strings.Fields("lfs df -h"))
+		slcLfsDfOutput := strings.Split(sLfsDfOutput, "\n")
+
+		if len(slcLfsDfOutput) < 2 {
+			fmt.Println(formatYellow("\tWarning. Cannot read Lustre filesystem information! Is a Lustre filesystem mounted?"))
+			return
+		}
+		for _, line := range slcLfsDfOutput {
 			fmt.Println("\t", line)
 		}
 	}

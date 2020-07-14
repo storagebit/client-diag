@@ -14,6 +14,7 @@ var (
 	iLoadedLustreModules     	= 0
 	bLnetLoaded              	= false
 	bParseMellanoxLspciOutput	= false
+	bLustreLoaded				= false
 )
 
 func init() {
@@ -75,9 +76,14 @@ func main() {
 	parseLustrePackages()
 
 	if bLustreInstalled {
-		println(formatBoldWhite("\nLoaded Lustre kernel modules:"))
 		parseLoadedLustreKernelModules()
 		parseLustreKernelModuleConfig()
+		fmt.Println(formatBoldWhite("\nLustre Filesystem OST and MST Information:"))
+		if bLustreLoaded {
+			parseLfsDf()
+		} else {
+			fmt.Println("\tThe Lustre kernel module is not loaded, cannot get OST and MST usage details.")
+		}
 		if rootUser() {
 			fmt.Println(formatBoldWhite("\nLustre LNET Information:"))
 			if bLnetLoaded {
@@ -95,7 +101,7 @@ func main() {
 		fmt.Println(formatBoldWhite("\nMellanox OFED:"), "No OFED found.")
 	}
 
-	if checkIfFileExists("ibdevinfo"){
+	if checkExecutableExists("ibv_devinfo"){
 		parseIBDEVInfo()
 	} else {
 		bParseMellanoxLspciOutput = true
@@ -105,18 +111,17 @@ func main() {
 	strLspciOutput, _ := runCommand(strings.Fields("lspci -vvv"))
 	parseLSPCI(strLspciOutput)
 
-	if checkIfFileExists("ibnetdiscover"){
+	if checkExecutableExists("ibnetdiscover") {
+		fmt.Println(formatBoldWhite("\nInfiniband fabric peers information (\"ibnetdiscover\" output):"))
 		sIBNetDiscover, _ := runCommand(strings.Fields("ibnetdiscover -H"))
 		slcIBNetDiscover := strings.Split(sIBNetDiscover, "\n")
-		fmt.Println(formatBoldWhite("\nInfiniband fabric peers information (\"ibnetdiscover\" output):"))
-
-		for _, line := range slcIBNetDiscover{
+		for _, line := range slcIBNetDiscover {
 			fmt.Println("\t", line)
 		}
 	} else {
-		bParseMellanoxLspciOutput = true
-		fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available.")
-	}
+			bParseMellanoxLspciOutput = true
+			fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available.")
+		}
 
 	fmt.Println(formatBoldWhite("\nIP Network Interface Information:"))
 
@@ -144,7 +149,7 @@ func main() {
 	for _, line := range slcMountOutput {
 		fmt.Println("\t", line)
 	}
-
+/*
 	fmt.Println(formatBoldWhite("\nSummary:"))
 	if len(mReport) < 1 {
 		fmt.Println("\t No troubles found.")
@@ -153,4 +158,5 @@ func main() {
 			fmt.Println("\t", k, ":", v)
 		}
 	}
+*/
 }
