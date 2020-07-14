@@ -9,23 +9,34 @@ import (
 
 func parseLSPCI(s string) {
 
-	slcPCIdevices := strings.Split(s, "\n\n")
+	slcPCIDevices := strings.Split(s, "\n\n")
 	var slcNetworkAdapters []string
+	var slcMellanoxHCAs []string
 
-	for _, device := range slcPCIdevices {
+	for _, device := range slcPCIDevices {
 
 		if strings.Contains(strings.ToLower(string(device)), "ethernet controller") {
 			slcNetworkAdapters = append(slcNetworkAdapters, device)
 		}
+		if strings.Contains(strings.ToLower(string(device)), "mellanox") {
+			slcMellanoxHCAs = append(slcMellanoxHCAs, device)
+		}
 	}
 
-	fmt.Println(formatBoldWhite("\nNetwork Ports/Interfaces Found: " + strconv.Itoa(len(slcNetworkAdapters))))
+	if bParseMellanoxLspciOutput{
+		fmt.Println(formatBoldWhite("\nMellanox HCAs: " + strconv.Itoa(len(slcMellanoxHCAs)) + " HCAs found in lspci output."))
+		for _, n := range slcMellanoxHCAs {
+			parsePCIDeviceDetail(strings.Split(n, "\n"))
+		}
+	}
+
+	fmt.Println(formatBoldWhite("\nNetwork Ports/Interfaces Found: " + strconv.Itoa(len(slcNetworkAdapters)) + " NICs found."))
 	for _, n := range slcNetworkAdapters {
-		parsePCIdeviceDetail(strings.Split(n, "\n"))
+		parsePCIDeviceDetail(strings.Split(n, "\n"))
 	}
 }
 
-func parsePCIdeviceDetail(d []string) {
+func parsePCIDeviceDetail(d []string) {
 
 	fmt.Println("\t", string(d[0][8:]))
 	fmt.Println("\t\t", "PCI Address:\t", d[0][:8])
@@ -51,7 +62,7 @@ func parsePCIdeviceDetail(d []string) {
 			strLinkSta = r.FindStringSubmatch(detail)[1] + r.FindStringSubmatch(detail)[2]
 
 			if strLinkCap != strLinkSta {
-				sWarning := "WARNING! Capabilities <-> Status Mismatch! Please check this device!"
+				sWarning := "WARNING! PCI link capabilities <-> PCI link status mismatch!"
 				fmt.Println(formatYellow("\t\t " + sWarning))
 				mReport["PCI Device " + d[0][:8]] = string(d[0][8:]) + " " + sWarning
 			}

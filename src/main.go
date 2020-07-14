@@ -7,12 +7,13 @@ import (
 )
 
 var (
-	mReport                  = make(map[string]string)
-	plainOutput              = false
-	lustreInstalled          = false
-	iInstalledLustrePackages = 0
-	iLoadedLustreModules     = 0
-	bLnetLoaded              = false
+	mReport                  	= make(map[string]string)
+	bPlainOutput             	= false
+	bLustreInstalled         	= false
+	iInstalledLustrePackages 	= 0
+	iLoadedLustreModules     	= 0
+	bLnetLoaded              	= false
+	bParseMellanoxLspciOutput	= false
 )
 
 func init() {
@@ -20,7 +21,7 @@ func init() {
 
 func main() {
 
-	flag.BoolVar(&plainOutput, "plain", false, "No color and no formatted console output in plain text.")
+	flag.BoolVar(&bPlainOutput, "plain", false, "No color and no formatted output. The console output will be in plain text.")
 	flag.Parse()
 
 	checkUser()
@@ -63,9 +64,17 @@ func main() {
 
 	checkSystemTuning()
 
+	if !checkFirewall() == false {
+		sWarning := "Firewall is running! Make sure that all necessary TCP/IP ports for your environment are open."
+		fmt.Println(formatBoldWhite("\nFirewall:"), formatYellow(sWarning))
+		mReport["Firewall"] = sWarning
+	} else {
+		fmt.Println(formatBoldWhite("\nFirewall:"), "No firewall found.")
+	}
+
 	parseLustrePackages()
 
-	if lustreInstalled {
+	if bLustreInstalled {
 		println(formatBoldWhite("\nLoaded Lustre kernel modules:"))
 		parseLoadedLustreKernelModules()
 		parseLustreKernelModuleConfig()
@@ -86,16 +95,28 @@ func main() {
 		fmt.Println(formatBoldWhite("\nMellanox OFED:"), "No OFED found.")
 	}
 
-	if !checkFirewall() == false {
-		sWarning := "Firewall is running! Make sure that all necessary TCP/IP ports for your environment are open."
-		fmt.Println(formatBoldWhite("\nFirewall:"), formatYellow(sWarning))
-		mReport["Firewall"] = sWarning
+	if checkIfFileExists("ibdevinfo"){
+		parseIBDEVInfo()
 	} else {
-		fmt.Println(formatBoldWhite("\nFirewall:"), "No firewall found.")
+		bParseMellanoxLspciOutput = true
+		fmt.Println("\nCannot find \"ibdevinfo\" in $PATH. Will parse \"lspci -vvv\" output for Mellanox HCA information instead.")
 	}
 
 	strLspciOutput, _ := runCommand(strings.Fields("lspci -vvv"))
 	parseLSPCI(strLspciOutput)
+
+	if checkIfFileExists("ibnetdiscover"){
+		sIBNetDiscover, _ := runCommand(strings.Fields("ibnetdiscover -H"))
+		slcIBNetDiscover := strings.Split(sIBNetDiscover, "\n")
+		fmt.Println(formatBoldWhite("\nInfiniband fabric peers information (\"ibnetdiscover\" output):"))
+
+		for _, line := range slcIBNetDiscover{
+			fmt.Println("\t", line)
+		}
+	} else {
+		bParseMellanoxLspciOutput = true
+		fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available.")
+	}
 
 	fmt.Println(formatBoldWhite("\nIP Network Interface Information:"))
 
@@ -123,8 +144,6 @@ func main() {
 	for _, line := range slcMountOutput {
 		fmt.Println("\t", line)
 	}
-
-	parseIBDEVInfo()
 
 	fmt.Println(formatBoldWhite("\nSummary:"))
 	if len(mReport) < 1 {

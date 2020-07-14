@@ -19,11 +19,11 @@ func parseLustrePackages() {
 				iInstalledLustrePackages++
 			}
 		}
-		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packaged.")
+		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
 		if iInstalledLustrePackages < 1 {
-			lustreInstalled = false
+			bLustreInstalled = false
 		} else {
-			lustreInstalled = true
+			bLustreInstalled = true
 		}
 		return
 
@@ -37,11 +37,11 @@ func parseLustrePackages() {
 				iInstalledLustrePackages++
 			}
 		}
-		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packaged.")
+		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
 		if iInstalledLustrePackages < 1 {
-			lustreInstalled = false
+			bLustreInstalled = false
 		} else {
-			lustreInstalled = true
+			bLustreInstalled = true
 		}
 		return
 	}
@@ -52,7 +52,7 @@ func parseLoadedLustreKernelModules() {
 		file, _ := os.Open("/proc/modules")
 		fScanner := bufio.NewScanner(file)
 		fScanner.Split(bufio.ScanLines)
-
+		fmt.Println(formatBoldWhite("\nLoaded Lustre Kernel modules:"))
 		for fScanner.Scan() {
 			sModule := strings.Split(fScanner.Text(), " ")[0]
 			sModinfoOutput, _ := runCommand(strings.Fields("modinfo " + sModule))

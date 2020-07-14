@@ -1,7 +1,7 @@
 package main
 
 func formatBoldWhite(s string) string {
-	if plainOutput == true {
+	if bPlainOutput == true {
 		return s
 	} else {
 		out := "\033[1;37m" + s + "\033[0m"
@@ -10,7 +10,7 @@ func formatBoldWhite(s string) string {
 }
 
 func formatYellow(s string) string {
-	if plainOutput == true {
+	if bPlainOutput == true {
 		return s
 	} else {
 		out := "\033[0;33m" + s + "\033[0m"
@@ -19,7 +19,7 @@ func formatYellow(s string) string {
 }
 
 func formatGreen(s string) string {
-	if plainOutput == true {
+	if bPlainOutput == true {
 		return s
 	} else {
 		out := "\033[0;32m" + s + "\033[0m"
