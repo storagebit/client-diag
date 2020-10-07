@@ -1,3 +1,17 @@
+/*The MIT License (MIT)
+Copyright © 2020 StorageBIT.ch
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the “Software”), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE AUTHORS
+OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 package main
 
 import (
@@ -72,7 +86,9 @@ func parseLoadedLustreKernelModules() {
 		}
 	}
 	if iLoadedLustreModules < 1 {
-		fmt.Println("\tNo Lustre Kernel module loaded.")
+		sWarning := "No lustre kernel modules loaded."
+		fmt.Println(formatYellow("\tWarning:"), formatYellow(sWarning))
+		troubleReport = append(troubleReport, "Lustre kernel module check: "+sWarning)
 	}
 	return
 }
@@ -95,7 +111,9 @@ func parseLfsDf() {
 		slcLfsDfOutput := strings.Split(sLfsDfOutput, "\n")
 
 		if len(slcLfsDfOutput) < 2 {
-			fmt.Println(formatYellow("\tWarning. Cannot read Lustre filesystem information! Is a Lustre filesystem mounted?"))
+			sWarning := "Cannot read Lustre filesystem information! Is a Lustre filesystem mounted?"
+			fmt.Println(formatYellow("\tWarning: " + sWarning))
+			troubleReport = append(troubleReport, "Lustre filesystem info: "+sWarning)
 			return
 		}
 		for _, line := range slcLfsDfOutput {
@@ -106,7 +124,6 @@ func parseLfsDf() {
 }
 
 func parseLustreKernelModuleConfig() {
-	fmt.Println(formatBoldWhite("\nLustre Kernel module configuration (\"/etc/modprobe.d/lustre.conf\"):"))
 	sPath := "/etc/modprobe.d/lustre.conf"
 
 	if checkIfFileExists(sPath) {
@@ -119,6 +136,8 @@ func parseLustreKernelModuleConfig() {
 		}
 		file.Close()
 	} else {
-		println(formatYellow("\tWarning: No \"/etc/modprobe.d/lustre.conf\" defined or to be found."))
+		sWarning := "No \"/etc/modprobe.d/lustre.conf\" defined or to be found."
+		println(formatYellow("\tWarning: " + sWarning))
+		troubleReport = append(troubleReport, "Lustre kernel module config: "+sWarning)
 	}
 }
