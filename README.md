@@ -18,7 +18,7 @@ The tool collects and analyses information of the following components:
 
 ## Installation
 Quite simple actually. 
-Just download the binary from here and run it on your MDS or OSS.
+Just download the binary from here and run it on your Lustre clients.
 
 Or `git clone https://github.com/storagebit/client-diag/` and `cd` into the `bin` directory where you find the binary or build and compile it from the source in the `src` directory.
 The choice is yours.
