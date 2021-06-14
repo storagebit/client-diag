@@ -22,6 +22,21 @@ import (
 	"strings"
 )
 
+var (
+	perfParameters = []string{
+		"osc.*.max_pages_per_rpc",
+		"osc.*.max_rpcs_in_flight",
+		"osc.*.max_dirty_mb",
+		"osc.*.checksums",
+		"llite.*.max_read_ahead_mb",
+		"llite.*.max_read_ahead_per_file_mb",
+		"ldlm.namespaces.*.lru_size",
+		"ldlm.namespaces.*.lru_max_age",
+		"mdc.*.max_rpcs_in_flight",
+		"mdc.*.max_mod_rpcs_in_flight",
+	}
+)
+
 func parseLustrePackages() {
 	if checkExecutableExists("rpm") {
 		sRPMOutput, _ := runCommand(strings.Fields("rpm -qa"))
@@ -139,5 +154,18 @@ func parseLustreKernelModuleConfig() {
 		sWarning := "No \"/etc/modprobe.d/lustre.conf\" defined or to be found."
 		println(formatYellow("\tWarning: " + sWarning))
 		troubleReport = append(troubleReport, "Lustre kernel module config: "+sWarning)
+	}
+}
+
+func parseLustreFilesystemTuning() {
+	if checkExecutableExists("lctl") {
+		for _, perfParameter := range perfParameters {
+			lctlOutput, _ := runCommand(strings.Fields("lctl get_param " + perfParameter))
+			slcLctlOutput := strings.Split(lctlOutput, "\n")
+			for _, line := range slcLctlOutput {
+				fmt.Println("\t" + strings.Trim(line, "\n"))
+			}
+		}
+
 	}
 }

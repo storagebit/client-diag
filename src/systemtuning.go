@@ -22,11 +22,23 @@ import (
 	"strings"
 )
 
+var (
+	sysctlParameters = []string{
+		"net.ipv4.conf.all.rp_filter",
+		"net.ipv4.conf.all.arp_announce",
+		"net.ipv4.conf.all.arp_ignore",
+		"net.ipv4.conf.default.rp_filter",
+		"net.ipv4.conf.default.arp_announce",
+		"net.ipv4.conf.default.arp_ignore",
+	}
+)
+
 func checkSystemTuning() {
-	fmt.Println(formatBoldWhite("\nServer/Client System Tuning Settings:"))
+	fmt.Println(formatBoldWhite("\nServer/Client OS and System Tuning Settings:"))
 	checkTuneD()
 	checkIRQBalance()
 	checkCstate()
+	checkOSTunables()
 	checkCPUScalingGovernor()
 }
 
@@ -110,5 +122,19 @@ func checkIRQBalance() {
 	if irqBalance == 0 {
 		fmt.Println("\tIRQBalance: ", formatGreen("OK"))
 		return
+	}
+}
+
+func checkOSTunables() {
+	if checkExecutableExists("cat") {
+		fmt.Print("\t/proc/sys/fs/aio-max-nr: ", strings.Trim(runCommand(
+			strings.Fields("cat /proc/sys/fs/aio-max-nr"))))
+		fmt.Print("\t/sys/kernel/mm/transparent_hugepage/enabled: ", strings.Trim(runCommand(
+			strings.Fields("cat /sys/kernel/mm/transparent_hugepage/enabled"))))
+	}
+	if checkExecutableExists("sysctl") {
+		for _, sysctlParameter := range sysctlParameters {
+			fmt.Print("\t", strings.Trim(runCommand(strings.Fields("sysctl "+sysctlParameter))))
+		}
 	}
 }

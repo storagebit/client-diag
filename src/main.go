@@ -117,6 +117,22 @@ func main() {
 				troubleReport = append(troubleReport, "LNET info: "+sWarning)
 			}
 		}
+		fmt.Println(formatBoldWhite("\nLustre Filesystem Client Mount Information:"))
+
+		strMountOutput, _ := runCommand(strings.Fields("mount -t lustre -l"))
+		slcMountOutput := strings.Split(strMountOutput, "\n")
+		if len(slcMountOutput) > 1 {
+			for _, line := range slcMountOutput {
+				fmt.Println("\t", line)
+			}
+			fmt.Println(formatBoldWhite("\nLustre Filesystem Client Tuning Information:"))
+			parseLustreFilesystemTuning()
+		} else {
+			sWarning := "Cannot find any active lustre device mounts. Are all lustre resources mounted?"
+			fmt.Println(formatYellow("\tWarning" + sWarning))
+			troubleReport = append(troubleReport, "Lustre devices: "+sWarning)
+		}
+
 	}
 
 	if checkExecutableExists("ofed_info") {
@@ -162,6 +178,7 @@ func main() {
 	fmt.Println(formatBoldWhite("\nClient lustre filesystem capacity information:"))
 
 	strDfOutput, err := runCommand(strings.Fields("df -t lustre -H"))
+
 	if len(err) > 0 {
 		sWarning := "Cannot find any active lustre filesystem. Are all lustre resources mounted?"
 		fmt.Println(formatYellow("\tWarning: " + sWarning))
@@ -177,20 +194,6 @@ func main() {
 			fmt.Println(formatYellow("\tWarning: " + sWarning))
 			troubleReport = append(troubleReport, "Lustre filesystem: "+sWarning)
 		}
-	}
-
-	fmt.Println(formatBoldWhite("\nClient lustre mount information:"))
-
-	strMountOutput, _ := runCommand(strings.Fields("mount -t lustre -l"))
-	slcMountOutput := strings.Split(strMountOutput, "\n")
-	if len(slcMountOutput) > 1 {
-		for _, line := range slcMountOutput {
-			fmt.Println("\t", line)
-		}
-	} else {
-		sWarning := "Cannot find any active lustre device mounts. Are all lustre resources mounted?"
-		fmt.Println(formatYellow("\tWarning" + sWarning))
-		troubleReport = append(troubleReport, "Lustre devices: "+sWarning)
 	}
 
 	fmt.Println(formatBoldWhite("\nTrouble Summary:"))

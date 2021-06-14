@@ -15,6 +15,7 @@ The tool collects and analyses information of the following components:
 * Lustre LNET information
 * Lustre filesystem information
 * Lustre device mount information
+* Lustre filesystem tuning information
 
 ## Installation
 Quite simple actually. 
