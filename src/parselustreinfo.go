@@ -35,8 +35,8 @@ var (
 		"mdc.*.max_rpcs_in_flight",
 		"mdc.*.max_mod_rpcs_in_flight",
 	}, []string{
-		"/etc/lustre/lustre.conf",
-		"/etc/lustre/lnet.conf",
+		"/etc/modprobe.d/lustre.conf",
+		"/etc/modprobe.d/lnet.conf",
 	}
 )
 
