@@ -25,8 +25,6 @@ func parseIBDEVInfo() {
 
 	if checkExecutableExists("ibv_devinfo") {
 
-		fmt.Println(formatBoldWhite("\nMellanox HCA Details/Information:"))
-
 		strIBDEVInfoOut, _ := runCommand(strings.Fields("ibv_devinfo"))
 		slcHCA := strings.Split(strIBDEVInfoOut, "\n\n")
 		for _, hca := range slcHCA {
@@ -74,7 +72,7 @@ func parseIBDEVInfo() {
 					intMaxMTU, _ := strconv.Atoi(maxMtu)
 					intActiveMTU, _ := strconv.Atoi(activeMtu)
 
-					if intMaxMTU < intActiveMTU {
+					if intMaxMTU != intActiveMTU {
 						sWarning := "Warning! MTU Mismatch!"
 						fmt.Println(formatYellow("\t\t\t\t" + sWarning))
 					}

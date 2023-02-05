@@ -15,7 +15,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 package main
 
 func formatBoldWhite(s string) string {
-	if bPlainOutput == true {
+	if bPlainOutput {
 		return s
 	} else {
 		out := "\033[1;37m" + s + "\033[0m"
@@ -24,7 +24,7 @@ func formatBoldWhite(s string) string {
 }
 
 func formatYellow(s string) string {
-	if bPlainOutput == true {
+	if bPlainOutput {
 		return s
 	} else {
 		out := "\033[0;33m" + s + "\033[0m"
@@ -33,10 +33,19 @@ func formatYellow(s string) string {
 }
 
 func formatGreen(s string) string {
-	if bPlainOutput == true {
+	if bPlainOutput {
 		return s
 	} else {
 		out := "\033[0;32m" + s + "\033[0m"
+		return out
+	}
+}
+
+func formatRed(s string) string {
+	if bPlainOutput {
+		return s
+	} else {
+		out := "\033[0;31m" + s + "\033[0m"
 		return out
 	}
 }
@@ -45,10 +54,18 @@ func statusFormat(returnCode int) string {
 	var status string
 
 	if returnCode == 0 {
-		status = formatGreen("OK")
+		if bPlainOutput {
+			status = "OK"
+		} else {
+			status = formatGreen("OK")
+		}
 		return status
 	} else {
-		status = formatYellow("WARNING")
+		if bPlainOutput {
+			status = "WARNING"
+		} else {
+			status = formatYellow("WARNING")
+		}
 		return status
 	}
 }

@@ -23,7 +23,7 @@ import (
 )
 
 var (
-	perfParameters = []string{
+	perfParameters, LUSTRE_CONF = []string{
 		"osc.*.max_pages_per_rpc",
 		"osc.*.max_rpcs_in_flight",
 		"osc.*.max_dirty_mb",
@@ -34,6 +34,9 @@ var (
 		"ldlm.namespaces.*.lru_max_age",
 		"mdc.*.max_rpcs_in_flight",
 		"mdc.*.max_mod_rpcs_in_flight",
+	}, []string{
+		"/etc/lustre/lustre.conf",
+		"/etc/lustre/lnet.conf",
 	}
 )
 
@@ -139,21 +142,19 @@ func parseLfsDf() {
 }
 
 func parseLustreKernelModuleConfig() {
-	sPath := "/etc/modprobe.d/lustre.conf"
 
-	if checkIfFileExists(sPath) {
-		file, _ := os.Open(sPath)
-		fScanner := bufio.NewScanner(file)
-		fScanner.Split(bufio.ScanLines)
+	for _, sPath := range LUSTRE_CONF {
 
-		for fScanner.Scan() {
-			fmt.Println("\t" + fScanner.Text())
+		if checkIfFileExists(sPath) {
+			fmt.Println("\tFound a Lustre kernel module config file at", sPath)
+			for _, line := range strings.Split(readFile("etc/modprobe.d/lustre.conf"), "\n") {
+				fmt.Println("\t" + line)
+			}
+		} else {
+			sWarning := "No " + sPath + "defined or to be found."
+			println(formatYellow("\tWarning: " + sWarning))
+			troubleReport = append(troubleReport, "Lustre kernel module config: "+sWarning)
 		}
-		file.Close()
-	} else {
-		sWarning := "No \"/etc/modprobe.d/lustre.conf\" defined or to be found."
-		println(formatYellow("\tWarning: " + sWarning))
-		troubleReport = append(troubleReport, "Lustre kernel module config: "+sWarning)
 	}
 }
 

@@ -16,8 +16,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -44,12 +42,10 @@ func checkSystemTuning() {
 
 func checkCstate() {
 	if checkIfFileExists("/sys/module/intel_idle/parameters/max_cstate") {
-		c, err := ioutil.ReadFile("/sys/module/intel_idle/parameters/max_cstate")
-		if err != nil {
-			log.Fatal(err)
-		}
-		sCstateSetting := strings.TrimRight(string(c), "\n\r")
-		iCstateSetting, err := strconv.Atoi(sCstateSetting)
+		cState := readFile("/sys/module/intel_idle/parameters/max_cstate")
+
+		sCstateSetting := strings.TrimRight(string(cState), "\n\r")
+		iCstateSetting, _ := strconv.Atoi(sCstateSetting)
 
 		if iCstateSetting > 0 {
 			sWarning := "The CPU maximum cstate setting is at " + sCstateSetting + "! For best performance it is recommended to configure it to 0."
@@ -77,6 +73,22 @@ func checkCPUScalingGovernor() {
 
 func checkTuneD() {
 	tunedReturnCode := getCommandReturnCode(strings.Fields("systemctl status tuned"))
+
+	if tunedReturnCode == 0 {
+		tunedProfile, _ := runCommand(strings.Fields("tuned-adm active"))
+		{
+			if strings.Contains(tunedProfile, "latency-performance") {
+				fmt.Println("\tTuneD service: ", formatGreen("OK"))
+				return
+			} else {
+				sWarning := "To achieve best performance you should run tuned with the 'latency-performance' profile."
+				fmt.Println("\tTuneD service: ", formatYellow(sWarning))
+				troubleReport = append(troubleReport, "TuneD service: "+sWarning)
+				return
+			}
+		}
+	}
+
 	if tunedReturnCode == 4 {
 		sWarning := "Not installed! To achieve best performance you should run tuned in the 'latency-performance' profile."
 		fmt.Println("\tTuneD service: ", formatYellow(sWarning))
@@ -88,20 +100,6 @@ func checkTuneD() {
 		fmt.Println("\tTuneD service: ", formatYellow(sWarning))
 		troubleReport = append(troubleReport, "TuneD service: "+sWarning)
 		return
-	}
-	if tunedReturnCode == 0 {
-		tunedProfile, _ := runCommand(strings.Fields("tuned-adm active"))
-		{
-			if strings.Contains(tunedProfile, "latency-performance") {
-				fmt.Println("\tTuneD service: ", formatGreen("OK"))
-				return
-			} else {
-				sWarning := "TuneD is not running. To achieve best performance you should run tuned with the 'latency-performance' profile."
-				fmt.Println("\tTuneD service: ", formatYellow(sWarning))
-				troubleReport = append(troubleReport, "TuneD service: "+sWarning)
-				return
-			}
-		}
 	}
 }
 

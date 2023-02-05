@@ -17,7 +17,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/user"
+	"strings"
 )
 
 func rootUser() bool {
@@ -45,8 +47,20 @@ func checkUser() {
 	fmt.Println("Running client-diag as user: " + currentUser.Username)
 
 	if !rootUser() {
-		fmt.Println("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
-			"Run as root or sudo if you want to see more.")
+		if !bAnswerYes {
+			fmt.Println("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
+				"Run as root or sudo if you want to see more.")
+			fmt.Print("Do you want to continue? [y/N]: ")
+			var input string
+			_, err := fmt.Scanln(&input)
+			if err != nil {
+				return
+			}
+			if strings.ToLower(input) != "y" {
+				fmt.Println("Exiting...")
+				os.Exit(2)
+			}
+		}
 	} else {
 
 		fmt.Println("client-diag is being executed with elevated/root privileges.")

@@ -15,14 +15,15 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 package main
 
 import (
-	"flag"
 	"fmt"
+	"github.com/spf13/pflag"
 	"strings"
 )
 
 var (
 	troubleReport             []string
 	bPlainOutput              = false
+	bAnswerYes                = false
 	bLustreInstalled          = false
 	iInstalledLustrePackages  = 0
 	iLoadedLustreModules      = 0
@@ -36,9 +37,10 @@ func init() {
 }
 
 func main() {
+	pflag.BoolVarP(&bPlainOutput, "plain-output", "p", false, "Plain output without colors or other formatters")
+	pflag.BoolVarP(&bAnswerYes, "yes", "y", false, "Answer yes to all questions.")
 
-	flag.BoolVar(&bPlainOutput, "plain", false, "No color and no formatted output. The console output will be in plain text.")
-	flag.Parse()
+	pflag.Parse()
 
 	checkUser()
 
@@ -99,6 +101,11 @@ func main() {
 		fmt.Println(formatBoldWhite("\nLustre Kernel module configuration (\"/etc/modprobe.d/lustre.conf\"):"))
 		parseLustreKernelModuleConfig()
 
+		fmt.Println(formatBoldWhite("\nLustre Filesystem Targets:"))
+		for _, line := range strings.Split(runCommand(strings.Fields("lfs check servers"))) {
+			fmt.Println("\t", line)
+		}
+
 		fmt.Println(formatBoldWhite("\nLustre Filesystem OST and MST Information:"))
 		if bLustreLoaded {
 			parseLfsDf()
@@ -125,6 +132,27 @@ func main() {
 			for _, line := range slcMountOutput {
 				fmt.Println("\t", line)
 			}
+			fmt.Println(formatBoldWhite("\nClient lustre filesystem capacity information:"))
+
+			strDfOutput, err := runCommand(strings.Fields("df -t lustre -H"))
+
+			if len(err) > 0 {
+				sWarning := "Cannot find any active lustre filesystem. Are all lustre resources mounted?"
+				fmt.Println(formatYellow("\tWarning: " + sWarning))
+				troubleReport = append(troubleReport, "Lustre filesystem: "+sWarning)
+			} else {
+				var slcDfOutput = strings.Split(strDfOutput, "\n")
+				if len(slcDfOutput) > 0 {
+					for _, line := range slcDfOutput {
+						fmt.Println("\t", line)
+					}
+				} else {
+					sWarning := "Cannot find any active lustre filesystem. Are all lustre resources mounted?"
+					fmt.Println(formatYellow("\tWarning: " + sWarning))
+					troubleReport = append(troubleReport, "Lustre filesystem: "+sWarning)
+				}
+			}
+
 			fmt.Println(formatBoldWhite("\nLustre Filesystem Client Tuning Information:"))
 			parseLustreFilesystemTuning()
 		} else {
@@ -134,6 +162,7 @@ func main() {
 		}
 
 	}
+	fmt.Println(formatBoldWhite("\nInfiniband/Mellanox Device Information:"))
 
 	if checkExecutableExists("ofed_info") {
 		ofedVersion, _ := runCommand(strings.Fields("ofed_info -n"))
@@ -142,15 +171,21 @@ func main() {
 		fmt.Println(formatBoldWhite("\nMellanox OFED:"), "No OFED found.")
 	}
 
+	if checkExecutableExists("ibdev2netdev") {
+		fmt.Println(formatBoldWhite("\nInfiniband device information (\"ibdev2netdev\" output):"))
+		sIBDev, _ := runCommand(strings.Fields("ibdev2netdev -v"))
+		slcIBNetdev := strings.Split(sIBDev, "\n")
+		for _, line := range slcIBNetdev {
+			fmt.Println("\t", line)
+		}
+	}
+
 	if checkExecutableExists("ibv_devinfo") {
 		parseIBDEVInfo()
 	} else {
 		bParseMellanoxLspciOutput = true
-		fmt.Println("\nCannot find \"ibv_devinfo\" in $PATH. Will parse \"lspci -vvv\" output for Mellanox HCA information instead. Is OFED installed?")
+		fmt.Println("\nCannot find \"ibv_devinfo\" in $PATH. Will parse \"lspci -vvv\" output for Mellanox HCA information instead.")
 	}
-
-	strLspciOutput, _ := runCommand(strings.Fields("lspci -vvv"))
-	parseLSPCI(strLspciOutput)
 
 	if checkExecutableExists("ibnetdiscover") {
 		fmt.Println(formatBoldWhite("\nInfiniband fabric peers information (\"ibnetdiscover\" output):"))
@@ -160,9 +195,11 @@ func main() {
 			fmt.Println("\t", line)
 		}
 	} else {
-		bParseMellanoxLspciOutput = true
-		fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available. Is OFED installed?")
+		fmt.Println("\nCannot find \"ibnetdiscover\" in $PATH and therefore no IB fabric peer information will be available.")
 	}
+
+	strLspciOutput, _ := runCommand(strings.Fields("lspci -vvv"))
+	parseLSPCI(strLspciOutput)
 
 	fmt.Println(formatBoldWhite("\nIP Network Interface Information:"))
 
@@ -175,24 +212,12 @@ func main() {
 		}
 	}
 
-	fmt.Println(formatBoldWhite("\nClient lustre filesystem capacity information:"))
-
-	strDfOutput, err := runCommand(strings.Fields("df -t lustre -H"))
-
-	if len(err) > 0 {
-		sWarning := "Cannot find any active lustre filesystem. Are all lustre resources mounted?"
-		fmt.Println(formatYellow("\tWarning: " + sWarning))
-		troubleReport = append(troubleReport, "Lustre filesystem: "+sWarning)
-	} else {
-		slcDfOutput := strings.Split(strDfOutput, "\n")
-		if len(slcDfOutput) > 0 {
-			for _, line := range slcDfOutput {
-				fmt.Println("\t", line)
-			}
-		} else {
-			sWarning := "Cannot find any active lustre filesystem. Are all lustre resources mounted?"
-			fmt.Println(formatYellow("\tWarning: " + sWarning))
-			troubleReport = append(troubleReport, "Lustre filesystem: "+sWarning)
+	if checkExecutableExists("netstat") {
+		fmt.Println(formatBoldWhite("\nNetwork statistics (\"netstat -t\" output):"))
+		strNetstatOutput, _ := runCommand(strings.Fields("netstat -t"))
+		slcNetstatOutput := strings.Split(strNetstatOutput, "\n")
+		for _, line := range slcNetstatOutput {
+			fmt.Println("\t", line)
 		}
 	}
 

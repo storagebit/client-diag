@@ -61,7 +61,7 @@ func parseLsCpu(s string) {
 
 			if cpuMax-cpuSpeed > 100 {
 				sWarning := "Warning! The CPU runs on speeds below its capabilities. Please check tuned, c-state and power saving settings."
-				fmt.Println(formatYellow("\t" + sWarning))
+				fmt.Println(formatYellow("\t " + sWarning))
 				troubleReport = append(troubleReport, "CPU: "+sWarning)
 			}
 		}
