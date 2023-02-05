@@ -27,10 +27,9 @@ The choice is yours.
 ## How to use it
 Also, quite simple.
 ```
-$ ./client_diag -h
-Usage of ./client-diag:
-  -plain
-    	No color and no formatted output. The console output will be in plain text.
+Usage of ./client_diag:
+  -p, --plain-output   Plain output without colors or other formatters
+  -y, --yes            Answer yes to all questions.
 ```
 ## Note
 I started this project as I was in need of a very simple to use tool which doesn't have 3rd party package or other software dependencies and can be easily distributed(just copy the binary).
