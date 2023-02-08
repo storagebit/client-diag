@@ -16,7 +16,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -46,11 +45,11 @@ func parseLustrePackages() {
 		slcRPMOutput := strings.Split(sRPMOutput, "\n")
 		for _, line := range slcRPMOutput {
 			if strings.Contains(line, "lustre") {
-				fmt.Println("\t", line)
+				writeOutLn("\t", line)
 				iInstalledLustrePackages++
 			}
 		}
-		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
+		writeOutLn("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
 		if iInstalledLustrePackages < 1 {
 			bLustreInstalled = false
 		} else {
@@ -63,11 +62,11 @@ func parseLustrePackages() {
 		slcDPKGOutput := strings.Split(sDPKGOutput, "\n")
 		for _, line := range slcDPKGOutput {
 			if strings.Contains(line, "lustre") {
-				fmt.Println("\t", line)
+				writeOutLn("\t", line)
 				iInstalledLustrePackages++
 			}
 		}
-		fmt.Println("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
+		writeOutLn("\t", "Found", strconv.Itoa(iInstalledLustrePackages), "installed packages.")
 		if iInstalledLustrePackages < 1 {
 			bLustreInstalled = false
 		} else {
@@ -94,9 +93,9 @@ func parseLoadedLustreKernelModules() {
 			slcModinfoOutput := strings.Split(sModinfoOutput, "\n")
 
 			if strings.Contains(slcModinfoOutput[3], "Lustre") {
-				fmt.Println("\tKernel module", sModule, "is loaded. Details as below:")
+				writeOutLn("\tKernel module", sModule, "is loaded. Details as below:")
 				for _, line := range slcModinfoOutput {
-					fmt.Println("\t\t", line)
+					writeOutLn("\t\t", line)
 				}
 				iLoadedLustreModules++
 			}
@@ -105,7 +104,7 @@ func parseLoadedLustreKernelModules() {
 	}
 	if iLoadedLustreModules < 1 {
 		sWarning := "No lustre kernel modules loaded."
-		fmt.Println(formatYellow("\tWarning:"), formatYellow(sWarning))
+		writeOutLn(formatYellow("\tWarning:"), formatYellow(sWarning))
 		troubleReport = append(troubleReport, "Lustre kernel module check: "+sWarning)
 	}
 	return
@@ -117,7 +116,7 @@ func parseLnetInfo() {
 		slcLnetOutput := strings.Split(sLnetOutput, "\n")
 
 		for _, line := range slcLnetOutput {
-			fmt.Println("\t", line)
+			writeOutLn("\t", line)
 		}
 	}
 	return
@@ -130,12 +129,12 @@ func parseLfsDf() {
 
 		if len(slcLfsDfOutput) < 2 {
 			sWarning := "Cannot read Lustre filesystem information! Is a Lustre filesystem mounted?"
-			fmt.Println(formatYellow("\tWarning: " + sWarning))
+			writeOutLn(formatYellow("\tWarning: " + sWarning))
 			troubleReport = append(troubleReport, "Lustre filesystem info: "+sWarning)
 			return
 		}
 		for _, line := range slcLfsDfOutput {
-			fmt.Println("\t", line)
+			writeOutLn("\t", line)
 		}
 	}
 	return
@@ -146,9 +145,9 @@ func parseLustreKernelModuleConfig() {
 	for _, sPath := range LUSTRE_CONF {
 
 		if checkIfFileExists(sPath) {
-			fmt.Println("\tFound a Lustre kernel module config file at", sPath)
+			writeOutLn("\tFound a Lustre kernel module config file at", sPath)
 			for _, line := range strings.Split(readFile("etc/modprobe.d/lustre.conf"), "\n") {
-				fmt.Println("\t" + line)
+				writeOutLn("\t" + line)
 			}
 		} else {
 			sWarning := "No " + sPath + "defined or to be found."
@@ -164,7 +163,7 @@ func parseLustreFilesystemTuning() {
 			lctlOutput, _ := runCommand(strings.Fields("lctl get_param " + perfParameter))
 			slcLctlOutput := strings.Split(lctlOutput, "\n")
 			for _, line := range slcLctlOutput {
-				fmt.Println("\t" + strings.Trim(line, "\n"))
+				writeOutLn("\t" + strings.Trim(line, "\n"))
 			}
 		}
 

@@ -44,11 +44,11 @@ func checkUser() {
 		log.Fatalf("Error while retrieving current user details: '%s'", err)
 	}
 
-	fmt.Println("Running client-diag as user: " + currentUser.Username)
+	writeOutLn("Running client-diag as user: " + currentUser.Username)
 
 	if !rootUser() {
 		if !bAnswerYes {
-			fmt.Println("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
+			writeOutLn("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
 				"Run as root or sudo if you want to see more.")
 			fmt.Print("Do you want to continue? [y/N]: ")
 			var input string
@@ -57,13 +57,13 @@ func checkUser() {
 				return
 			}
 			if strings.ToLower(input) != "y" {
-				fmt.Println("Exiting...")
+				writeOutLn("Exiting...")
 				os.Exit(2)
 			}
 		}
 	} else {
 
-		fmt.Println("client-diag is being executed with elevated/root privileges.")
+		writeOutLn("client-diag is being executed with elevated/root privileges.")
 	}
 
 }

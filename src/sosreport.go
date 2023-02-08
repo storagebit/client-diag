@@ -14,29 +14,32 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 package main
 
-import (
-	"fmt"
-	"strings"
-)
+func checkIfSosreportExists() bool {
+	return checkExecutableExists("sos")
+}
 
-func parseOSinfo(o string, k string) {
+func runSosreport() (string, string) {
 
-	strKernel := k
-	if strings.Contains(o, "CentOS") {
-		redhat_release, _ := runCommand(strings.Fields("cat /etc/redhat-release"))
-		writeOutLn("\t", "Linux Distribution:", strings.TrimSpace(redhat_release))
+	if !rootUser() {
+		writeOutLn(formatYellow("sosreport can only be run as root. Skipping..."))
+		return "", ""
 	} else {
-		slcOS := strings.Split(o, "\n")
-		for _, line := range slcOS {
-			if strings.Contains(line, "Description:") {
-				writeOutLn("\t", "Linux Distribution:", strings.TrimSpace(strings.Split(line, ":")[1]))
-			}
-			if strings.Contains(line, "PRETTY_NAME=") {
-				writeOutLn("\t", "Linux Distribution:", strings.Replace(strings.TrimSpace(strings.Split(line, "=")[1]), "\"", "", -1))
-			}
+		writeOutLn(formatBoldWhite("Running sosreport... Please wait..."))
+		var commandParts []string
+		commandParts = append(commandParts, "report")
+		commandParts = append(commandParts, "--batch")
+		commandParts = append(commandParts, "--tmp-dir")
+		commandParts = append(commandParts, sTempDir)
+		commandParts = append(commandParts, "--all-logs")
+		commandParts = append(commandParts, "-z")
+		commandParts = append(commandParts, "auto")
+		commandParts = append(commandParts, "-a")
+		commandParts = append(commandParts, "-q")
+
+		if len(sSupportReference) > 0 {
+			commandParts = append(commandParts, "--case-id")
+			commandParts = append(commandParts, sSupportReference)
 		}
-	}
-	if len(strKernel) > 1 {
-		fmt.Print("\t", " Kernel:", strKernel)
+		return runCommand(commandParts)
 	}
 }

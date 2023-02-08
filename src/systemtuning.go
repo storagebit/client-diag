@@ -32,7 +32,7 @@ var (
 )
 
 func checkSystemTuning() {
-	fmt.Println(formatBoldWhite("\nServer/Client OS and System Tuning Settings:"))
+	writeOutLn(formatBoldWhite("\nServer/Client OS and System Tuning Settings:"))
 	checkTuneD()
 	checkIRQBalance()
 	checkCstate()
@@ -49,24 +49,24 @@ func checkCstate() {
 
 		if iCstateSetting > 0 {
 			sWarning := "The CPU maximum cstate setting is at " + sCstateSetting + "! For best performance it is recommended to configure it to 0."
-			fmt.Println("\tCPU maximum cstate setting: ", formatYellow(sWarning))
+			writeOutLn("\tCPU maximum cstate setting: ", formatYellow(sWarning))
 			troubleReport = append(troubleReport, "CPU cstate: "+sWarning)
 			return
 		} else {
-			fmt.Println("\tCPU maximum cstate setting: " + sCstateSetting + " - " + formatGreen("OK"))
+			writeOutLn("\tCPU maximum cstate setting: " + sCstateSetting + " - " + formatGreen("OK"))
 			return
 		}
 	} else {
-		fmt.Println("\tCannot read the systems cstate setting. Cannot read the file '/sys/module/intel_idle/parameters/max_cstate'")
+		writeOutLn("\tCannot read the systems cstate setting. Cannot read the file '/sys/module/intel_idle/parameters/max_cstate'")
 	}
 }
 
 func checkCPUScalingGovernor() {
-	fmt.Println("\n\tReading additional CPU information. ")
+	writeOutLn("\n\tReading additional CPU information. ")
 	if checkExecutableExists("cpupower") {
 		cpuPowerOutput, _ := runCommand(strings.Fields("cpupower -c " + cpuList + " frequency-info"))
 		for _, line := range strings.Split(cpuPowerOutput, "\n") {
-			fmt.Println("\t", line)
+			writeOutLn("\t", line)
 		}
 	}
 }
@@ -78,11 +78,11 @@ func checkTuneD() {
 		tunedProfile, _ := runCommand(strings.Fields("tuned-adm active"))
 		{
 			if strings.Contains(tunedProfile, "latency-performance") {
-				fmt.Println("\tTuneD service: ", formatGreen("OK"))
+				writeOutLn("\tTuneD service: ", formatGreen("OK"))
 				return
 			} else {
 				sWarning := "To achieve best performance you should run tuned with the 'latency-performance' profile."
-				fmt.Println("\tTuneD service: ", formatYellow(sWarning))
+				writeOutLn("\tTuneD service: ", formatYellow(sWarning))
 				troubleReport = append(troubleReport, "TuneD service: "+sWarning)
 				return
 			}
@@ -91,13 +91,13 @@ func checkTuneD() {
 
 	if tunedReturnCode == 4 {
 		sWarning := "Not installed! To achieve best performance you should run tuned in the 'latency-performance' profile."
-		fmt.Println("\tTuneD service: ", formatYellow(sWarning))
+		writeOutLn("\tTuneD service: ", formatYellow(sWarning))
 		troubleReport = append(troubleReport, "TuneD service: "+sWarning)
 		return
 	}
 	if tunedReturnCode != 0 {
 		sWarning := "Service failed! Please check the tuned service."
-		fmt.Println("\tTuneD service: ", formatYellow(sWarning))
+		writeOutLn("\tTuneD service: ", formatYellow(sWarning))
 		troubleReport = append(troubleReport, "TuneD service: "+sWarning)
 		return
 	}
@@ -107,18 +107,18 @@ func checkIRQBalance() {
 	irqBalance := getCommandReturnCode(strings.Fields("systemctl status irqbalance"))
 	if irqBalance == 4 {
 		sWarning := "Not installed! To achieve best performance and user experience you should run IRQ Balance."
-		fmt.Println("\tIRQ Balance: ", formatYellow(sWarning))
+		writeOutLn("\tIRQ Balance: ", formatYellow(sWarning))
 		troubleReport = append(troubleReport, "IRQ Balance: "+sWarning)
 		return
 	}
 	if irqBalance != 0 {
 		sWarning := "IRQBalance service is failed! Please check the IRQ Balance service."
-		fmt.Println("\tIRQ Balance: ", formatYellow(sWarning))
+		writeOutLn("\tIRQ Balance: ", formatYellow(sWarning))
 		troubleReport = append(troubleReport, "IRQ Balance: "+sWarning)
 		return
 	}
 	if irqBalance == 0 {
-		fmt.Println("\tIRQBalance: ", formatGreen("OK"))
+		writeOutLn("\tIRQBalance: ", formatGreen("OK"))
 		return
 	}
 }

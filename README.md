@@ -16,6 +16,7 @@ The tool collects and analyses information of the following components:
 * Lustre filesystem information
 * Lustre device mount information
 * Lustre filesystem tuning information
+* Collects sos report and creates a client diagnostic bundle
 
 ## Installation
 Quite simple actually. 
@@ -28,8 +29,19 @@ The choice is yours.
 Also, quite simple.
 ```
 Usage of ./client_diag:
-  -p, --plain-output   Plain output without colors or other formatters
-  -y, --yes            Answer yes to all questions.
+  -c, --client-diag-bundle                      Create a client diagnostic bundle and save it to /tmp/client-diag-bundle-<hostname>-<date>.tar.xz.
+                                                This bundle will also include the sosreport if the -s option is used.
+  -o, --client-diag-bundle-output-path string   Output path for the client diagnostic bundle.
+                                                Only works if the -c option is used. (default "/tmp")
+  -h, --help                                    Show this help message
+  -p, --plain-output                            Plain output without colors or other formatters
+  -q, --quiet                                   Quiet mode. Only print errors and warnings. Only works if the -c option is used.
+  -s, --sosreport                               Create a sosreport and save it to /tmp/sosreport-<hostname>-<date>.tar.xz
+  -r, --support-reference string                Support reference number or case for the client diagnostic and sosreport bundle.
+                                                This will be added to the filename of the bundle if provided.
+  -w, --working-dir string                      Working directory for sosreport and client diagnostic bundle creation. (default "/tmp")
+  -y, --yes                                     Answer yes to all questions.
+
 ```
 ## Note
 I started this project as I was in need of a very simple to use tool which doesn't have 3rd party package or other software dependencies and can be easily distributed(just copy the binary).

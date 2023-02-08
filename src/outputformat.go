@@ -14,6 +14,13 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 package main
 
+import (
+	"fmt"
+	"log"
+	"os"
+	"strings"
+)
+
 func formatBoldWhite(s string) string {
 	if bPlainOutput {
 		return s
@@ -67,5 +74,34 @@ func statusFormat(returnCode int) string {
 			status = formatYellow("WARNING")
 		}
 		return status
+	}
+}
+
+func writeOutLn(s ...string) {
+
+	line := strings.Join(s, " ")
+
+	if !bQuietMode {
+		fmt.Println(line)
+	}
+
+	if bCreateClientDiagBundle {
+
+		f, err := os.OpenFile(sClientDiagOutputFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
+		if err != nil {
+			log.Println(formatRed("Error opening file: " + err.Error()))
+		}
+
+		defer func(f *os.File) {
+			err := f.Close()
+			if err != nil {
+				log.Println(formatRed("Error closing file: " + err.Error()))
+			}
+		}(f)
+
+		_, err = f.WriteString(line + "\n")
+		if err != nil {
+			log.Println(formatRed("Error writing to file: " + err.Error()))
+		}
 	}
 }

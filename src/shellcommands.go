@@ -16,7 +16,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -51,9 +50,9 @@ func runCommand(commandParts []string) (string, string) {
 	outStr := string(stdout.Bytes())
 	errStr := string(stderr.Bytes())
 	if err != nil {
-		fmt.Println(formatYellow("\t" + cmd.String() + " " + err.Error()))
+		writeOutLn(formatYellow("\t" + cmd.String() + " " + err.Error()))
 		for _, line := range strings.Split(errStr, "\n") {
-			fmt.Println("\t" + line)
+			writeOutLn("\t" + line)
 		}
 	}
 	return outStr, errStr
