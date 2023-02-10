@@ -89,12 +89,12 @@ func addFileToTarWriter(filePath string, tarWriter *tar.Writer) error {
 
 	err = tarWriter.WriteHeader(header)
 	if err != nil {
-		log.Println(formatRed("Error writing header:" + err.Error()))
+		log.Println(formatRed("Error writing header: " + err.Error()))
 	}
 
 	_, err = io.Copy(tarWriter, file)
 	if err != nil {
-		log.Println(formatRed("Error copying file data to tarball:" + err.Error()))
+		log.Println(formatRed("Error copying file data into tarball: " + err.Error()))
 	}
 
 	return nil

@@ -47,9 +47,10 @@ func checkUser() {
 	writeOutLn("Running client-diag as user: " + currentUser.Username)
 
 	if !rootUser() {
+
+		writeOutLn("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
+			"Run as root or sudo if you want to see more.")
 		if !bAnswerYes {
-			writeOutLn("Executing client-diag without root privileges or sudo will limit the dianostic/reporting capabilities.\n" +
-				"Run as root or sudo if you want to see more.")
 			fmt.Print("Do you want to continue? [y/N]: ")
 			var input string
 			_, err := fmt.Scanln(&input)
